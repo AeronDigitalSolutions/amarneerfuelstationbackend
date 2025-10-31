@@ -28,8 +28,9 @@ app.use(express.json());
 
 // ✅ Configure CORS (allow Vercel frontend + local dev)
 const allowedOrigins = [
-  "https://amarneerfuelstationfrontend.vercel.app", // your deployed frontend
-  "http://localhost:3000" // local dev frontend
+  "https://amarneerfuelstationfrontend.vercel.app",
+  "http://localhost:3000",
+  "http://localhost:5173"
 ];
 
 app.use(
