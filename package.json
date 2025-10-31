@@ -1,6 +1,8 @@
 {
   "name": "backend",
   "version": "1.0.0",
+    "type": "module",
+
   "description": "Petrol Pump backend using Node, Express, MongoDB, TypeScript",
   "main": "dist/server.js",
   "scripts": {
