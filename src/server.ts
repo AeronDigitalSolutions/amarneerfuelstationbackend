@@ -1,4 +1,4 @@
-import express, { Application, Request, Response } from "express";
+import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db";
@@ -18,22 +18,31 @@ dotenv.config();
 // Connect to MongoDB
 connectDB();
 
-const app: Application = express();
+// Initialize Express app
+const app = express();
 
 // -------------------
 // 🧩 Middleware
 // -------------------
 app.use(express.json());
 
-// ✅ Configure CORS (allow frontend + local)
+// ✅ Configure CORS (allow Vercel frontend + local dev)
 const allowedOrigins = [
-  "https://amarneerfuelstationfrontend.vercel.app", // your frontend (on Vercel)
-  "http://localhost:3000" // local dev
+  "https://amarneerfuelstationfrontend.vercel.app", // your deployed frontend
+  "http://localhost:3000" // local dev frontend
 ];
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     credentials: true,
   })
@@ -53,19 +62,19 @@ app.use("/api", dashboardRoutes);
 // -------------------
 // 🏁 Root Route
 // -------------------
-app.get("/", (req: Request, res: Response) => {
+app.get("/", (req, res) => {
   res.json({ message: "🚀 Amar Neer Fuel Station Backend is running!" });
 });
 
 // -------------------
-// 🚀 Start Server (for local)
+// 🚀 Run locally
 // -------------------
 const PORT = process.env.PORT || 5000;
 if (process.env.NODE_ENV !== "production") {
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  app.listen(PORT, () => console.log(`Server running locally on port ${PORT}`));
 }
 
 // -------------------
-// ✅ Export for Vercel
+// ✅ Export for Vercel serverless
 // -------------------
 export default app;
