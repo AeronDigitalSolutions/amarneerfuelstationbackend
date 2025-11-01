@@ -1,15 +1,13 @@
 {
   "name": "backend",
   "version": "1.0.0",
-    
-
+  
   "description": "Petrol Pump backend using Node, Express, MongoDB, TypeScript",
   "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js"
-    
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
