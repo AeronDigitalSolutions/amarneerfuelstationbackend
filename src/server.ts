@@ -34,12 +34,18 @@ const allowedOrigins = [
   "http://localhost:5173",
 ];
 
+
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (mobile apps, curl)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
+
+      // Allow all your Vercel subdomains
+      if (
+        origin.endsWith(".vercel.app") ||
+        origin === "http://localhost:3000" ||
+        origin === "http://localhost:5173"
+      ) {
         callback(null, true);
       } else {
         console.warn("❌ Blocked CORS for origin:", origin);
@@ -50,6 +56,7 @@ app.use(
     credentials: true,
   })
 );
+
 
 // -------------------
 // 🛣️ API Routes
