@@ -12,13 +12,19 @@ import adminRoutes from "./routes/adminRoutes";
 import payrollRoutes from "./routes/payrollRoutes";
 import dashboardRoutes from "./routes/dashboardRoutes";
 
-// Load environment variables
+// -------------------
+// 🌿 Load environment variables
+// -------------------
 dotenv.config();
 
-// Connect to MongoDB
+// -------------------
+// 🧩 Connect to MongoDB
+// -------------------
 connectDB();
 
-// Initialize Express app
+// -------------------
+// ⚙️ Initialize Express app
+// -------------------
 const app = express();
 
 // -------------------
@@ -61,6 +67,13 @@ app.use("/api", adminRoutes);
 app.use("/api", dashboardRoutes);
 
 // -------------------
+// 🩺 Health Check (for Render uptime checks)
+// -------------------
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK", message: "Server healthy 💚" });
+});
+
+// -------------------
 // 🏁 Root Route
 // -------------------
 app.get("/", (req, res) => {
@@ -68,14 +81,15 @@ app.get("/", (req, res) => {
 });
 
 // -------------------
-// 🚀 Run locally
+// 🚀 Start Server (always listen on Render)
 // -------------------
 const PORT = process.env.PORT || 5000;
-if (process.env.NODE_ENV !== "production") {
-  app.listen(PORT, () => console.log(`Server running locally on port ${PORT}`));
-}
+
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
 
 // -------------------
-// ✅ Export for Vercel serverless
+// ✅ Export (optional if using for serverless or tests)
 // -------------------
 export default app;
