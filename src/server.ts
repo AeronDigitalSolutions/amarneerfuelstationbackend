@@ -12,19 +12,13 @@ import adminRoutes from "./routes/adminRoutes";
 import payrollRoutes from "./routes/payrollRoutes";
 import dashboardRoutes from "./routes/dashboardRoutes";
 
-// -------------------
-// 🌿 Load environment variables
-// -------------------
+// Load environment variables
 dotenv.config();
 
-// -------------------
-// 🧩 Connect to MongoDB
-// -------------------
+// Connect to MongoDB
 connectDB();
 
-// -------------------
-// ⚙️ Initialize Express app
-// -------------------
+// Initialize Express app
 const app = express();
 
 // -------------------
@@ -32,21 +26,23 @@ const app = express();
 // -------------------
 app.use(express.json());
 
-// ✅ Configure CORS (allow Vercel frontend + local dev)
+// ✅ Configure CORS (Render backend + Vercel frontend + local dev)
 const allowedOrigins = [
   "https://amarneerfuelstationfrontend.vercel.app",
+  "https://amarneerfuelstationfrontend-kvbd96vbl-aerons-projects-801a0715.vercel.app",
   "http://localhost:3000",
-  "http://localhost:5173"
+  "http://localhost:5173",
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl)
+      // Allow requests with no origin (mobile apps, curl)
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        console.warn("❌ Blocked CORS for origin:", origin);
         callback(new Error("Not allowed by CORS"));
       }
     },
@@ -67,13 +63,6 @@ app.use("/api", adminRoutes);
 app.use("/api", dashboardRoutes);
 
 // -------------------
-// 🩺 Health Check (for Render uptime checks)
-// -------------------
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "OK", message: "Server healthy 💚" });
-});
-
-// -------------------
 // 🏁 Root Route
 // -------------------
 app.get("/", (req, res) => {
@@ -81,15 +70,15 @@ app.get("/", (req, res) => {
 });
 
 // -------------------
-// 🚀 Start Server (always listen on Render)
+// 🚀 Start Server (for Render + local dev)
 // -------------------
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
 
-app.listen(PORT, () => {
+
+// Render requires your app to *always* listen on process.env.PORT
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
 
-// -------------------
-// ✅ Export (optional if using for serverless or tests)
-// -------------------
+// Export only if needed for testing
 export default app;
