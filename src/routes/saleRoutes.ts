@@ -1,15 +1,23 @@
 import express from "express";
-import { addSale, getAllSales, updateSale } from "../controllers/saleController";
+import {
+  addSale,
+  getAllSales,
+  updateSale,
+  deleteSale,
+} from "../controllers/saleController";
 
 const router = express.Router();
 
-// Create sale
+// ➕ Create sale
 router.post("/", addSale);
 
-// Get all sales
+// 📋 Get all sales
 router.get("/", getAllSales);
 
-// Update sale (Edit)
+// ✏️ Update sale
 router.put("/:id", updateSale);
+
+// 🗑️ Delete sale
+router.delete("/:id", deleteSale);
 
 export default router;

@@ -11,6 +11,12 @@ import creditRoutes from "./routes/creditLineRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import payrollRoutes from "./routes/payrollRoutes";
 import dashboardRoutes from "./routes/dashboardRoutes";
+import fuelRateRoutes from "./routes/fuelRateRoutes";
+import pumpRoutes from "./routes/pumpRoutes";
+import addtankRoutes from "./routes/addtankroutes";
+import fuelTestRoutes from "./routes/fuelTestRoutes";
+import shiftRoutes from "./routes/shiftRoutes";
+
 
 // Load environment variables
 dotenv.config();
@@ -24,7 +30,10 @@ const app = express();
 // -------------------
 // 🧩 Middleware
 // -------------------
-app.use(express.json());
+
+// ✅ Allow Base64 / large payloads
+app.use(express.json({ limit: "20mb" }));
+app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 
 // ✅ Configure CORS (Render backend + Vercel frontend + local dev)
 const allowedOrigins = [
@@ -34,13 +43,11 @@ const allowedOrigins = [
   "http://localhost:5173",
 ];
 
-
 app.use(
   cors({
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
 
-      // Allow all your Vercel subdomains
       if (
         origin.endsWith(".vercel.app") ||
         origin === "http://localhost:3000" ||
@@ -57,7 +64,6 @@ app.use(
   })
 );
 
-
 // -------------------
 // 🛣️ API Routes
 // -------------------
@@ -68,19 +74,23 @@ app.use("/api/payroll", payrollRoutes);
 app.use("/api", creditRoutes);
 app.use("/api", adminRoutes);
 app.use("/api", dashboardRoutes);
+app.use("/api/fuel-rates", fuelRateRoutes);
+app.use("/api/pumps", pumpRoutes);
+app.use("/api/tank-master", addtankRoutes);
+app.use("/api/fueltest", fuelTestRoutes);
+app.use("/api/shifts", shiftRoutes);
 
 // -------------------
 // 🏁 Root Route
 // -------------------
-app.get("/", (req, res) => {
+app.get("/", (_req, res) => {
   res.json({ message: "🚀 Amar Neer Fuel Station Backend is running!" });
 });
 
 // -------------------
-// 🚀 Start Server (for Render + local dev)
+// 🚀 Start Server (Render + local dev)
 // -------------------
 const PORT = Number(process.env.PORT) || 5000;
-
 
 // Render requires your app to *always* listen on process.env.PORT
 app.listen(PORT, "0.0.0.0", () => {

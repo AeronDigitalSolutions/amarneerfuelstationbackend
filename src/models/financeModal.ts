@@ -10,7 +10,13 @@ export interface IFinance extends Document {
   modeOfPayment?: string;
   supplierName?: string;
   invoiceNo?: string;
+  // New fields for daily expense
+  autoTimestamp?: Date;   // server filled if not provided
+  userTimestamp?: Date;   // optional user-provided date/time
+  name?: string;
+  attendantName?: string;
   createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const financeSchema = new Schema<IFinance>(
@@ -24,6 +30,12 @@ const financeSchema = new Schema<IFinance>(
     modeOfPayment: { type: String },
     supplierName: { type: String },
     invoiceNo: { type: String },
+
+    // new fields
+    autoTimestamp: { type: Date }, // server generated if missing
+    userTimestamp: { type: Date },
+    name: { type: String },
+    attendantName: { type: String },
   },
   { timestamps: true }
 );

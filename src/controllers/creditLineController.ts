@@ -1,43 +1,60 @@
 import { Request, Response } from "express";
 import CreditAccount from "../models/creditLineModel";
 
-// ➕ Add Credit Account
+// ✅ Add Account
 export const addCreditAccount = async (req: Request, res: Response) => {
   try {
     const {
       accountId,
       accountName,
-      name,
+      phoneNo,
       email,
+      companyName,
+      aadhaarNo,
+      panNo,
+      document,
+      fuelType,
       creditLimit,
       contactPerson,
-      fuelType,
       vehicles,
     } = req.body;
+
+    let parsedVehicles = vehicles;
+    if (typeof vehicles === "string") {
+      try {
+        parsedVehicles = JSON.parse(vehicles);
+      } catch {
+        parsedVehicles = [];
+      }
+    }
 
     const newAccount = await CreditAccount.create({
       accountId,
       accountName,
-      name,
+      phoneNo,
       email,
+      companyName,
+      aadhaarNo,
+      panNo,
+      document,
+      fuelType,
       creditLimit,
       contactPerson,
-      fuelType,
-      vehicles,
+      vehicles: parsedVehicles,
       totalSales: 0,
       totalPayments: 0,
       outstanding: 0,
       transactions: [],
     });
 
-    res.status(201).json(newAccount);
+    return res.status(201).json(newAccount);
   } catch (error) {
     console.error("Error creating credit account:", error);
-    res.status(500).json({ message: "Error creating credit account", error });
+    return res.status(500).json({ message: "Error creating credit account", error });
   }
 };
 
-// 📋 Get All Accounts
+// ✅ Get all accounts
 export const getAllAccounts = async (_req: Request, res: Response) => {
   try {
     const accounts = await CreditAccount.find().sort({ createdAt: -1 });
@@ -47,10 +64,19 @@ export const getAllAccounts = async (_req: Request, res: Response) => {
   }
 };
 
-// 💰 Add Sale or Payment Transaction
+// ✅ Add Sale / Payment
 export const addTransaction = async (req: Request, res: Response) => {
   try {
-    const { accountId, type, amount, paymentMode } = req.body;
+    const {
+      accountId,
+      type,
+      amount,
+      paymentMode,
+      vehicleNo,
+      fuelType,
+      rate,
+      volume,
+    } = req.body;
 
     const account = await CreditAccount.findOne({ accountId });
     if (!account) return res.status(404).json({ message: "Account not found" });
@@ -60,6 +86,10 @@ export const addTransaction = async (req: Request, res: Response) => {
       type,
       amount,
       paymentMode: paymentMode || "",
+      vehicleNo,
+      fuelType,
+      rate,
+      volume,
     };
 
     account.transactions.push(transaction);
@@ -77,25 +107,29 @@ export const addTransaction = async (req: Request, res: Response) => {
   }
 };
 
-// 🧾 Get Single Account Details
+// ✅ Get details by ID
 export const getAccountDetails = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const account = await CreditAccount.findById(id);
+
     if (!account) return res.status(404).json({ message: "Account not found" });
-    res.status(200).json(account);
+
+    return res.status(200).json(account);
   } catch (error) {
     res.status(500).json({ message: "Error fetching account details", error });
   }
 };
 
-// 🗑️ Delete Account
+// ✅ Delete account
 export const deleteAccount = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const deleted = await CreditAccount.findByIdAndDelete(id);
+
     if (!deleted) return res.status(404).json({ message: "Account not found" });
-    res.status(200).json({ message: "Account deleted successfully" });
+
+    return res.status(200).json({ message: "Account deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting account", error });
   }

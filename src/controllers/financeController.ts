@@ -1,10 +1,22 @@
 import { Request, Response } from "express";
 import Finance from "../models/financeModal";
 
-// ➕ Create finance entry
+// ➕ Create finance entry (works for normal entries and daily expense)
 export const addFinance = async (req: Request, res: Response) => {
   try {
-    const entry = await Finance.create(req.body);
+    const body = { ...req.body };
+
+    // Ensure autoTimestamp is set server-side if not provided
+    if (!body.autoTimestamp) {
+      body.autoTimestamp = new Date();
+    }
+
+    // If userTimestamp provided as string, convert to Date
+    if (body.userTimestamp) {
+      body.userTimestamp = new Date(body.userTimestamp);
+    }
+
+    const entry = await Finance.create(body);
     res.status(201).json(entry);
   } catch (error) {
     console.error("Error adding finance entry:", error);
@@ -28,20 +40,20 @@ export const getSummary = async (req: Request, res: Response) => {
     const all = await Finance.find();
 
     const totalSales = all
-      .filter(f => f.entryType === "Journal" && f.credit > 0)
-      .reduce((sum, f) => sum + f.credit, 0);
+      .filter((f) => f.entryType === "Journal" && (f.credit || 0) > 0)
+      .reduce((sum, f) => sum + (f.credit || 0), 0);
 
     const totalPurchase = all
-      .filter(f => f.category?.toLowerCase().includes("purchase"))
-      .reduce((sum, f) => sum + f.debit, 0);
+      .filter((f) => (f.category || "").toLowerCase().includes("purchase"))
+      .reduce((sum, f) => sum + (f.debit || 0), 0);
 
     const totalExpense = all
-      .filter(f => f.entryType === "Expense")
-      .reduce((sum, f) => sum + f.amount, 0);
+      .filter((f) => f.entryType === "Expense")
+      .reduce((sum, f) => sum + (f.amount || 0), 0);
 
     const profit = totalSales - (totalPurchase + totalExpense);
 
-    const opening = 0; // static for now, can be configurable
+    const opening = 0; // static for now
     const receipts = totalSales;
     const payments = totalPurchase + totalExpense;
     const cashbookBalance = opening + receipts - payments;
@@ -56,7 +68,11 @@ export const getSummary = async (req: Request, res: Response) => {
 export const updateFinance = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const updatedEntry = await Finance.findByIdAndUpdate(id, req.body, {
+    const body = { ...req.body };
+
+    if (body.userTimestamp) body.userTimestamp = new Date(body.userTimestamp);
+
+    const updatedEntry = await Finance.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,
     });

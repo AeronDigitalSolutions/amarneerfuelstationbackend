@@ -9,10 +9,19 @@ import {
 
 const router = express.Router();
 
+// ➕ Create new finance entry (Normal or Daily Expense)
 router.post("/", addFinance);
+
+// 📋 Fetch all finance entries
 router.get("/", getAllFinance);
+
+// 📊 Financial Summary (Sales, Purchase, Expense, Profit)
 router.get("/summary", getSummary);
-router.put("/:id", updateFinance);    // ✏️ Update existing entry
-router.delete("/:id", deleteFinance); // 🗑️ Delete existing entry
+
+// ✏️ Update existing entry
+router.put("/:id", updateFinance);
+
+// 🗑️ Delete existing entry
+router.delete("/:id", deleteFinance);
 
 export default router;
