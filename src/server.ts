@@ -16,6 +16,7 @@ import pumpRoutes from "./routes/pumpRoutes";
 import addtankRoutes from "./routes/addtankroutes";
 import fuelTestRoutes from "./routes/fuelTestRoutes";
 import shiftRoutes from "./routes/shiftRoutes";
+import paymentRoutes from "./routes/payment";
 
 
 // Load environment variables
@@ -79,6 +80,7 @@ app.use("/api/pumps", pumpRoutes);
 app.use("/api/tank-master", addtankRoutes);
 app.use("/api/fueltest", fuelTestRoutes);
 app.use("/api/shifts", shiftRoutes);
+app.use("/api/payments", paymentRoutes);
 
 // -------------------
 // 🏁 Root Route
