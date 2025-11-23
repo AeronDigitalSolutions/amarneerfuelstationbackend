@@ -18,6 +18,9 @@ import fuelTestRoutes from "./routes/fuelTestRoutes";
 import shiftRoutes from "./routes/shiftRoutes";
 import paymentRoutes from "./routes/payment";
 
+import authRoutes from "./routes/authRoutes";
+
+
 
 // Load environment variables
 dotenv.config();
@@ -64,7 +67,7 @@ app.use(
     credentials: true,
   })
 );
-
+app.use("/api/auth", authRoutes);
 // -------------------
 // 🛣️ API Routes
 // -------------------
@@ -82,12 +85,17 @@ app.use("/api/fueltest", fuelTestRoutes);
 app.use("/api/shifts", shiftRoutes);
 app.use("/api/payments", paymentRoutes);
 
+
+
 // -------------------
 // 🏁 Root Route
 // -------------------
 app.get("/", (_req, res) => {
   res.json({ message: "🚀 Amar Neer Fuel Station Backend is running!" });
 });
+
+console.log("🔥 SERVER RUNNING FROM:", __dirname);
+
 
 // -------------------
 // 🚀 Start Server (Render + local dev)
