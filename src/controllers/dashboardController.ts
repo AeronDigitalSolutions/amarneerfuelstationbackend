@@ -9,7 +9,7 @@ export const getDashboardData = async (_req: Request, res: Response) => {
     // 1️⃣ Total Sales
     const sales = await Sale.find();
     const totalSales = sales.reduce((sum, s) => sum + s.totalAmount, 0);
-    const totalLitres = sales.reduce((sum, s) => sum + s.litresSold, 0);
+    const totalLitres = sales.reduce((sum, s) => sum + s.totalLitres, 0);
 
     // 2️⃣ Cash Flow (Payments vs Credit)
     const cashPayments = sales

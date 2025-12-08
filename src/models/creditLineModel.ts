@@ -25,6 +25,10 @@ export interface ICreditAccount extends Document {
   totalPayments: number;
   outstanding: number;
 
+  dueDate: Date | null;               // ⭐ NEW — 15-day timer start
+  status: string;                      // ⭐ NEW — normal | overLimit | dueSoon | overdue
+  lastReminderSent: Date | null;       // ⭐ NEW — reminder history
+
   transactions: {
     date: Date;
     type: "Sale" | "Payment";
@@ -65,6 +69,11 @@ const creditSchema = new Schema<ICreditAccount>(
     totalSales: { type: Number, default: 0 },
     totalPayments: { type: Number, default: 0 },
     outstanding: { type: Number, default: 0 },
+
+    // ⭐ NEW FIELDS
+    dueDate: { type: Date, default: null },
+    status: { type: String, default: "normal" },
+    lastReminderSent: { type: Date, default: null },
 
     transactions: [
       {

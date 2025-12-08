@@ -12,7 +12,7 @@ import adminRoutes from "./routes/adminRoutes";
 import payrollRoutes from "./routes/payrollRoutes";
 import dashboardRoutes from "./routes/dashboardRoutes";
 import fuelRateRoutes from "./routes/fuelRateRoutes";
-import pumpRoutes from "./routes/pumpRoutes";
+import machineRoutes from "./routes/machineRoutes";
 import addtankRoutes from "./routes/addtankroutes";
 import fuelTestRoutes from "./routes/fuelTestRoutes";
 import shiftRoutes from "./routes/shiftRoutes";
@@ -79,11 +79,12 @@ app.use("/api", creditRoutes);
 app.use("/api", adminRoutes);
 app.use("/api", dashboardRoutes);
 app.use("/api/fuel-rates", fuelRateRoutes);
-app.use("/api/pumps", pumpRoutes);
+app.use("/api/machines", machineRoutes);
 app.use("/api/tank-master", addtankRoutes);
 app.use("/api/fueltest", fuelTestRoutes);
 app.use("/api/shifts", shiftRoutes);
 app.use("/api/payments", paymentRoutes);
+
 
 
 

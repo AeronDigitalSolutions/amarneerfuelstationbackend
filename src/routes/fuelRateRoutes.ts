@@ -3,7 +3,7 @@ import { saveFuelRates, getFuelRates } from "../controllers/fuelRateController";
 
 const router = express.Router();
 
-router.post("/", saveFuelRates);
 router.get("/", getFuelRates);
+router.post("/", saveFuelRates);
 
 export default router;

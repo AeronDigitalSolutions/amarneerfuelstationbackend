@@ -1,60 +1,127 @@
+// controllers/saleController.ts
 import { Request, Response } from "express";
 import Sale from "../models/saleModel";
 
-// Helper to compute litres & total safely
-const computeSaleValues = (body: any) => {
-  const opening = Number(body.openingMeter || 0);
-  const closing = Number(body.closingMeter || 0);
-  const testFuel = Number(body.testFuel || 0);
-  const rate = Number(body.ratePerLitre || 0);
+// Helper to compute litres & amount for an entry
+const computeEntry = (entry: any) => {
+  const opening = Number(entry.openingMeter || 0);
+  const closing = Number(entry.closingMeter || 0);
+  const testFuel = Number(entry.testFuel || 0);
+  const rate = Number(entry.ratePerLitre || 0);
 
   let litres = closing - opening - testFuel;
   if (litres < 0) litres = 0;
+  const amount = litres * rate;
 
-  const totalAmount = litres * rate;
-
-  return { litresSold: litres, totalAmount };
+  return { litres, amount };
 };
 
-// ➕ Create new sale
+// Create sale (with entries)
 export const addSale = async (req: Request, res: Response) => {
   try {
-    const computed = computeSaleValues(req.body);
+    const body = req.body;
+
+    if (!Array.isArray(body.entries) || body.entries.length === 0) {
+      return res.status(400).json({ message: "At least one nozzle entry is required" });
+    }
+
+    // compute for each entry & totals
+    let totalLitres = 0;
+    let totalAmount = 0;
+
+    const entries = body.entries.map((e: any) => {
+      const computed = computeEntry(e);
+      totalLitres += computed.litres;
+      totalAmount += computed.amount;
+
+      return {
+        nozzleNo: e.nozzleNo,
+        nozzleName: e.nozzleName || "",
+        fuelType: e.fuelType,
+        openingMeter: Number(e.openingMeter || 0),
+        closingMeter: Number(e.closingMeter || 0),
+        testFuel: Number(e.testFuel || 0),
+        litres: computed.litres,
+        ratePerLitre: Number(e.ratePerLitre || 0),
+        amount: Number(computed.amount.toFixed(2)),
+        attendant: e.attendant || "",
+      };
+    });
 
     const sale = await Sale.create({
-      ...req.body,
-      litresSold: computed.litresSold,
-      totalAmount: computed.totalAmount,
+      saleId: body.saleId,
+      date: body.date,
+      time: body.time,
+      shift: body.shift,
+      machineNo: body.machineNo,
+      entries,
+      totalLitres: Number(totalLitres.toFixed(2)),
+      totalAmount: Number(totalAmount.toFixed(2)),
+      cashAmount: Number(body.cashAmount || 0),
+      upiAmount: Number(body.upiAmount || 0),
+      cardAmount: Number(body.cardAmount || 0),
+      totalPayment: Number(body.totalPayment || 0),
+      paymentMode: body.paymentMode || "Cash",
+      creditParty: body.creditParty || "",
+      remarks: body.remarks || "",
+      attendant: body.attendant || "",
     });
 
     res.status(201).json(sale);
   } catch (error: any) {
+    console.error("Error saving sale:", error);
     res.status(500).json({ message: "Error saving sale", error: error.message });
   }
 };
 
-// 📋 Get all sales
 export const getAllSales = async (req: Request, res: Response) => {
   try {
     const sales = await Sale.find().sort({ createdAt: -1 });
     res.json(sales);
   } catch (error: any) {
+    console.error("Error fetching sales:", error);
     res.status(500).json({ message: "Error fetching sales", error: error.message });
   }
 };
 
-// ✏️ Update sale
 export const updateSale = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const computed = computeSaleValues(req.body);
+    const body = req.body;
+
+    if (!Array.isArray(body.entries) || body.entries.length === 0) {
+      return res.status(400).json({ message: "At least one nozzle entry is required" });
+    }
+
+    let totalLitres = 0;
+    let totalAmount = 0;
+
+    const entries = body.entries.map((e: any) => {
+      const computed = computeEntry(e);
+      totalLitres += computed.litres;
+      totalAmount += computed.amount;
+
+      return {
+        nozzleNo: e.nozzleNo,
+        nozzleName: e.nozzleName || "",
+        fuelType: e.fuelType,
+        openingMeter: Number(e.openingMeter || 0),
+        closingMeter: Number(e.closingMeter || 0),
+        testFuel: Number(e.testFuel || 0),
+        litres: computed.litres,
+        ratePerLitre: Number(e.ratePerLitre || 0),
+        amount: Number(computed.amount.toFixed(2)),
+        attendant: e.attendant || "",
+      };
+    });
 
     const updated = await Sale.findByIdAndUpdate(
       id,
       {
-        ...req.body,
-        litresSold: computed.litresSold,
-        totalAmount: computed.totalAmount,
+        ...body,
+        entries,
+        totalLitres: Number(totalLitres.toFixed(2)),
+        totalAmount: Number(totalAmount.toFixed(2)),
       },
       { new: true }
     );
@@ -63,20 +130,19 @@ export const updateSale = async (req: Request, res: Response) => {
 
     res.json(updated);
   } catch (error: any) {
+    console.error("Error updating sale:", error);
     res.status(500).json({ message: "Error updating sale", error: error.message });
   }
 };
 
-// 🗑️ Delete sale
 export const deleteSale = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const deleted = await Sale.findByIdAndDelete(id);
-
     if (!deleted) return res.status(404).json({ message: "Sale not found" });
-
     res.json({ message: "Sale deleted successfully" });
   } catch (error: any) {
+    console.error("Error deleting sale:", error);
     res.status(500).json({ message: "Error deleting sale", error: error.message });
   }
 };
