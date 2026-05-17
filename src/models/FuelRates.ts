@@ -1,20 +1,13 @@
-import mongoose, { Document, Schema } from "mongoose";
+import { DataTypes } from "sequelize";
+import sequelize from "../config/db";
 
-export interface IFuelRate extends Document {
-  rates: Record<string, number>;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const fuelRateSchema = new Schema<IFuelRate>(
+export const FuelRate: any = sequelize.define(
+  "FuelRate",
   {
-    rates: {
-      type: Map,
-      of: Number,
-      required: true,
-    },
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    rates: { type: DataTypes.JSONB, allowNull: false, defaultValue: {} },
   },
-  { timestamps: true }
+  { tableName: "fuel_rates", timestamps: true }
 );
 
-export const FuelRate = mongoose.model<IFuelRate>("FuelRate", fuelRateSchema);
+export default FuelRate;

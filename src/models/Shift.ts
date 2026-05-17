@@ -1,18 +1,16 @@
-import mongoose, { Schema, Document } from "mongoose";
+import { DataTypes } from "sequelize";
+import sequelize from "../config/db";
 
-export interface IShift extends Document {
-  shiftName: string;
-  startTime: string;
-  endTime: string;
-}
-
-const shiftSchema: Schema = new Schema(
+const Shift: any = sequelize.define(
+  "Shift",
   {
-    shiftName: { type: String, required: true },
-    startTime: { type: String, required: true },
-    endTime: { type: String, required: true },
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    shiftName: { type: DataTypes.STRING, allowNull: false },
+    startTime: { type: DataTypes.STRING, allowNull: false },
+    endTime: { type: DataTypes.STRING, allowNull: false },
+    notes: { type: DataTypes.TEXT, allowNull: true },
   },
-  { timestamps: true }
+  { tableName: "shifts", timestamps: true }
 );
 
-export default mongoose.model<IShift>("Shift", shiftSchema);
+export default Shift;

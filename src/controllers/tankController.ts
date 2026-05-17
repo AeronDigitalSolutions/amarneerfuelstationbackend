@@ -1,11 +1,8 @@
-// controllers/tankController.ts
 import { Request, Response } from "express";
 import Tank from "../models/tankModel";
 
-// ➕ Create Tank
 export const addTank = async (req: Request, res: Response) => {
   try {
-    // Validate minimal fields (you can expand validation)
     const {
       tankId,
       productType,
@@ -66,7 +63,6 @@ export const addTank = async (req: Request, res: Response) => {
         : [],
     };
 
-    // allow optional dateTime to be saved as custom field (not part of schema timestamps)
     if (dateTime) payload.dateTime = dateTime;
 
     const newTank = await Tank.create(payload);
@@ -77,10 +73,9 @@ export const addTank = async (req: Request, res: Response) => {
   }
 };
 
-// 📋 Get All Tanks
-export const getAllTanks = async (req: Request, res: Response) => {
+export const getAllTanks = async (_req: Request, res: Response) => {
   try {
-    const tanks = await Tank.find().sort({ createdAt: -1 });
+    const tanks = await Tank.findAll({ order: [["createdAt", "DESC"]] });
     res.status(200).json(tanks);
   } catch (error) {
     console.error("❌ Error fetching tanks:", error);
@@ -88,15 +83,10 @@ export const getAllTanks = async (req: Request, res: Response) => {
   }
 };
 
-// ✏️ Update Tank
 export const updateTank = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const {
-      invoiceDensity,
-      chambers,
-      ...rest
-    } = req.body;
+    const { invoiceDensity, chambers, ...rest } = req.body;
 
     const updatePayload: any = {
       ...rest,
@@ -109,21 +99,24 @@ export const updateTank = async (req: Request, res: Response) => {
         : undefined,
     };
 
-    const updated = await Tank.findByIdAndUpdate(id, updatePayload, { new: true });
-    if (!updated) return res.status(404).json({ message: "Tank not found" });
-    res.json(updated);
+    const tank = await Tank.findByPk(id);
+    if (!tank) return res.status(404).json({ message: "Tank not found" });
+
+    await tank.update(updatePayload);
+    res.json(tank);
   } catch (error) {
     console.error("❌ Error updating tank:", error);
     res.status(500).json({ message: "Error updating tank", error });
   }
 };
 
-// ❌ Delete Tank
 export const deleteTank = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const deleted = await Tank.findByIdAndDelete(id);
-    if (!deleted) return res.status(404).json({ message: "Tank not found" });
+    const tank = await Tank.findByPk(id);
+    if (!tank) return res.status(404).json({ message: "Tank not found" });
+
+    await tank.destroy();
     res.json({ message: "Tank deleted successfully" });
   } catch (error) {
     console.error("❌ Error deleting tank:", error);

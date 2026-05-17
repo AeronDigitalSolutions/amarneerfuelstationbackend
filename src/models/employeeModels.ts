@@ -1,26 +1,17 @@
-import mongoose, { Schema, Document } from "mongoose";
+import { DataTypes } from "sequelize";
+import sequelize from "../config/db";
 
-export interface IEmployee extends Document {
-  name: string;
-  role: string;
-  salaryType: "Monthly" | "Shift";
-  salaryAmount: number;
-  bankName?: string;
-  accountNumber?: string;
-  ifscCode?: string;
-}
-
-const employeeSchema = new Schema<IEmployee>(
+const Employee: any = sequelize.define(
+  "Employee",
   {
-    name: { type: String, required: true },
-    role: { type: String, required: true },
-    salaryType: { type: String, enum: ["Monthly", "Shift"], required: true },
-    salaryAmount: { type: Number, required: true },
-    bankName: { type: String },
-    accountNumber: { type: String },
-    ifscCode: { type: String },
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    name: { type: DataTypes.STRING, allowNull: false },
+    role: { type: DataTypes.STRING, allowNull: false },
+    salaryType: { type: DataTypes.ENUM("Monthly", "Daily"), allowNull: false },
+    salaryAmount: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    phone: { type: DataTypes.STRING, allowNull: true },
   },
-  { timestamps: true }
+  { tableName: "employees", timestamps: true }
 );
 
-export default mongoose.model<IEmployee>("Employee", employeeSchema);
+export default Employee;

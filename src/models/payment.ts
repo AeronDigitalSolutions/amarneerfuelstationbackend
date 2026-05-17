@@ -1,18 +1,14 @@
-import { Schema, model, Document } from "mongoose";
+import { DataTypes } from "sequelize";
+import sequelize from "../config/db";
 
-export interface IPayment extends Document {
-  amount: number;
-  mode: "UPI" | "CARD";
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const paymentSchema = new Schema<IPayment>(
+const Payment: any = sequelize.define(
+  "Payment",
   {
-    amount: { type: Number, required: true },
-    mode: { type: String, enum: ["UPI", "CARD"], required: true },
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    amount: { type: DataTypes.FLOAT, allowNull: false },
+    mode: { type: DataTypes.ENUM("UPI", "CARD"), allowNull: false },
   },
-  { timestamps: true }
+  { tableName: "payments", timestamps: true }
 );
 
-export default model<IPayment>("Payment", paymentSchema);
+export default Payment;

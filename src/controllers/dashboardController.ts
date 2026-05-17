@@ -6,39 +6,33 @@ import CreditAccount from "../models/creditLineModel";
 
 export const getDashboardData = async (_req: Request, res: Response) => {
   try {
-    // 1️⃣ Total Sales
-    const sales = await Sale.find();
-    const totalSales = sales.reduce((sum, s) => sum + s.totalAmount, 0);
-    const totalLitres = sales.reduce((sum, s) => sum + s.totalLitres, 0);
+    const sales = (await Sale.findAll()) as any[];
+    const totalSales = sales.reduce((sum, s) => sum + Number(s.totalAmount || 0), 0);
+    const totalLitres = sales.reduce((sum, s) => sum + Number(s.totalLitres || 0), 0);
 
-    // 2️⃣ Cash Flow (Payments vs Credit)
     const cashPayments = sales
-      .filter(s => s.paymentMode === "Cash")
-      .reduce((sum, s) => sum + s.totalAmount, 0);
+      .filter((s) => s.paymentMode === "Cash")
+      .reduce((sum, s) => sum + Number(s.totalAmount || 0), 0);
 
     const bankPayments = sales
-      .filter(s => s.paymentMode === "Bank")
-      .reduce((sum, s) => sum + s.totalAmount, 0);
+      .filter((s) => s.paymentMode === "Bank")
+      .reduce((sum, s) => sum + Number(s.totalAmount || 0), 0);
 
-    // 3️⃣ Fuel Stock Levels
-    const tanks = await Tank.find();
-    const stockLevels = tanks.map((t: any) => ({
+    const tanks = (await Tank.findAll()) as any[];
+    const stockLevels = tanks.map((t) => ({
       fuelType: t.productType,
-      currentLevel: t.closingStock,
-      capacity: t.capacity,
+      currentLevel: Number(t.closingStock || 0),
+      capacity: Number(t.capacity || 0),
     }));
 
-    // 4️⃣ Attendance Summary
-    const attendance = await Attendance.find();
-    const totalStaff = new Set(attendance.map(a => a.employeeId)).size;
-    const presentToday = attendance.filter(
-      a => a.date.split("T")[0] === new Date().toISOString().split("T")[0]
-    ).length;
+    const attendance = (await Attendance.findAll()) as any[];
+    const totalStaff = new Set(attendance.map((a) => a.employeeId)).size;
+    const today = new Date().toISOString().split("T")[0];
+    const presentToday = attendance.filter((a) => String(a.date || "").split("T")[0] === today).length;
 
-    // 5️⃣ Credit Accounts Summary
-    const creditAccounts = await CreditAccount.find();
+    const creditAccounts = (await CreditAccount.findAll()) as any[];
     const totalOutstanding = creditAccounts.reduce(
-      (sum, acc) => sum + (acc.outstanding || 0),
+      (sum, acc) => sum + Number(acc.outstanding || 0),
       0
     );
 

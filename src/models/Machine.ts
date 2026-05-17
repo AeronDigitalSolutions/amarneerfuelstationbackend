@@ -1,35 +1,15 @@
-// models/Machine.ts
-import mongoose, { Schema, Document } from "mongoose";
+import { DataTypes } from "sequelize";
+import sequelize from "../config/db";
 
-export interface INozzle {
-  nozzleNo: number;
-  fuelType: string;
-  name?: string; // optional descriptive name
-}
-
-export interface IMachine extends Document {
-  machineNo: string;
-  machineName: string;
-  nozzles: INozzle[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const nozzleSchema = new Schema<INozzle>({
-  nozzleNo: { type: Number, required: true },
-  fuelType: { type: String, required: true }, // dynamic fuel type, no enum
-  name: { type: String },
-});
-
-
-const machineSchema = new Schema<IMachine>(
+export const Machine: any = sequelize.define(
+  "Machine",
   {
-    machineNo: { type: String, required: true, unique: true },
-    machineName: { type: String, required: true },
-    nozzles: [nozzleSchema],
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    machineNo: { type: DataTypes.STRING, allowNull: false, unique: true },
+    machineName: { type: DataTypes.STRING, allowNull: false },
+    nozzles: { type: DataTypes.JSONB, allowNull: false, defaultValue: [] },
   },
-  { timestamps: true }
+  { tableName: "machines", timestamps: true }
 );
 
-export const Machine = mongoose.model<IMachine>("Machine", machineSchema);
 export default Machine;

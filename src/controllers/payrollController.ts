@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
+import { Op } from "sequelize";
 import Attendance from "../models/attendanceModels";
 import Employee from "../models/employeeModels";
 
-// ➕ Add Employee
 export const addEmployee = async (req: Request, res: Response) => {
   try {
     const emp = await Employee.create(req.body);
@@ -12,33 +12,33 @@ export const addEmployee = async (req: Request, res: Response) => {
   }
 };
 
-// 📋 Get All Employees
 export const getEmployees = async (_req: Request, res: Response) => {
   try {
-    const emps = await Employee.find().sort({ createdAt: -1 });
+    const emps = await Employee.findAll({ order: [["createdAt", "DESC"]] });
     res.status(200).json(emps);
   } catch (error) {
     res.status(500).json({ message: "Error fetching employees", error });
   }
 };
 
-// ✅ Add Attendance
 export const addAttendance = async (req: Request, res: Response) => {
   try {
     const { employeeId, date, shift, inTime, outTime, status, overtimeHours } = req.body;
 
-    const emp = await Employee.findById(employeeId);
+    const emp = await Employee.findByPk(employeeId);
     if (!emp) return res.status(404).json({ message: "Employee not found" });
 
+    const employee = emp as any;
+    const extraHours = Number(overtimeHours || 0);
+
     let salaryEarned = 0;
-    if (emp.salaryType === "Monthly") {
-      salaryEarned = status === "Present" ? emp.salaryAmount / 30 : 0;
+    if (employee.salaryType === "Monthly") {
+      salaryEarned = status === "Present" ? Number(employee.salaryAmount || 0) / 30 : 0;
     } else {
-      salaryEarned = status === "Present" ? emp.salaryAmount : 0;
+      salaryEarned = status === "Present" ? Number(employee.salaryAmount || 0) : 0;
     }
 
-    // Add overtime bonus (₹100/hr)
-    salaryEarned += overtimeHours * 100;
+    salaryEarned += extraHours * 100;
 
     const attendance = await Attendance.create({
       employeeId,
@@ -47,7 +47,7 @@ export const addAttendance = async (req: Request, res: Response) => {
       inTime,
       outTime,
       status,
-      overtimeHours,
+      overtimeHours: extraHours,
       salaryEarned,
     });
 
@@ -58,35 +58,50 @@ export const addAttendance = async (req: Request, res: Response) => {
   }
 };
 
-// 📋 Get All Attendance Records
 export const getAllAttendance = async (_req: Request, res: Response) => {
   try {
-    const records = await Attendance.find()
-      .populate("employeeId", "name role")
-      .sort({ date: -1 });
+    const records = (await Attendance.findAll({ order: [["date", "DESC"]] })) as any[];
+    const employeeIds = Array.from(new Set(records.map((r) => r.employeeId))).filter(Boolean);
 
-    res.status(200).json(records);
+    const employees = employeeIds.length
+      ? ((await Employee.findAll({ where: { _id: { [Op.in]: employeeIds } } })) as any[])
+      : [];
+
+    const empMap = new Map(employees.map((e) => [e._id, e]));
+
+    const merged = records.map((r: any) => {
+      const e = empMap.get(r.employeeId);
+      return {
+        ...r.toJSON(),
+        employeeId: e
+          ? { _id: e._id, name: e.name, role: e.role }
+          : { _id: r.employeeId, name: "Unknown", role: "Unknown" },
+      };
+    });
+
+    res.status(200).json(merged);
   } catch (error) {
     res.status(500).json({ message: "Error fetching attendance records", error });
   }
 };
 
-// 📊 Get Payroll Summary (per employee)
 export const getPayrollSummary = async (req: Request, res: Response) => {
   try {
     const { employeeId } = req.params;
-    const emp = await Employee.findById(employeeId);
+    const emp = await Employee.findByPk(employeeId);
     if (!emp) return res.status(404).json({ message: "Employee not found" });
 
-    const records = await Attendance.find({ employeeId });
+    const records = (await Attendance.findAll({ where: { employeeId } })) as any[];
     const totalDays = records.length;
-    const presentDays = records.filter(r => r.status === "Present").length;
-    const totalSalary = records.reduce((sum, r) => sum + (r.salaryEarned || 0), 0);
+    const presentDays = records.filter((r) => r.status === "Present").length;
+    const totalSalary = records.reduce((sum, r) => sum + Number(r.salaryEarned || 0), 0);
+
+    const employee = emp as any;
 
     const summary = {
-      name: emp.name,
-      role: emp.role,
-      salaryType: emp.salaryType,
+      name: employee.name,
+      role: employee.role,
+      salaryType: employee.salaryType,
       totalDays,
       presentDays,
       totalSalary,
@@ -98,13 +113,13 @@ export const getPayrollSummary = async (req: Request, res: Response) => {
   }
 };
 
-// 🗑️ Delete Attendance
 export const deleteAttendance = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const deleted = await Attendance.findByIdAndDelete(id);
-    if (!deleted) return res.status(404).json({ message: "Attendance not found" });
+    const record = await Attendance.findByPk(id);
+    if (!record) return res.status(404).json({ message: "Attendance not found" });
 
+    await record.destroy();
     res.status(200).json({ message: "Attendance deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting attendance", error });

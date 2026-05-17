@@ -10,9 +10,9 @@ export const addShift = async (req: Request, res: Response) => {
   }
 };
 
-export const getShifts = async (req: Request, res: Response) => {
+export const getShifts = async (_req: Request, res: Response) => {
   try {
-    const shifts = await Shift.find();
+    const shifts = await Shift.findAll({ order: [["createdAt", "DESC"]] });
     res.json(shifts);
   } catch (error) {
     res.status(500).json({ message: "Error fetching shifts", error });
@@ -21,11 +21,11 @@ export const getShifts = async (req: Request, res: Response) => {
 
 export const updateShift = async (req: Request, res: Response) => {
   try {
-    const updated = await Shift.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
+    const shift = await Shift.findByPk(req.params.id);
+    if (!shift) return res.status(404).json({ message: "Shift not found" });
 
-    res.json({ message: "Shift updated", shift: updated });
+    await shift.update(req.body);
+    res.json({ message: "Shift updated", shift });
   } catch (error) {
     res.status(500).json({ message: "Error updating shift", error });
   }
@@ -33,7 +33,10 @@ export const updateShift = async (req: Request, res: Response) => {
 
 export const deleteShift = async (req: Request, res: Response) => {
   try {
-    await Shift.findByIdAndDelete(req.params.id);
+    const shift = await Shift.findByPk(req.params.id);
+    if (!shift) return res.status(404).json({ message: "Shift not found" });
+
+    await shift.destroy();
     res.json({ message: "Shift deleted" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting shift", error });

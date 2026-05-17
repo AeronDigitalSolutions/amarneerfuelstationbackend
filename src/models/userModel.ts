@@ -1,25 +1,20 @@
-import mongoose, { Schema, Document } from "mongoose";
+import { DataTypes } from "sequelize";
+import sequelize from "../config/db";
 
-export interface IUser extends Document {
-  username: string;
-  email: string;
-  password: string;
-  role: "Admin" | "Manager" | "Cashier" | "Accountant" | "Attendant";
-  createdAt: Date;
-}
-
-const userSchema = new Schema<IUser>(
+const User: any = sequelize.define(
+  "User",
   {
-    username: { type: String, required: true, unique: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    username: { type: DataTypes.STRING, allowNull: false, unique: true },
+    email: { type: DataTypes.STRING, allowNull: false, unique: true },
+    password: { type: DataTypes.STRING, allowNull: false },
     role: {
-      type: String,
-      enum: ["Admin", "Manager", "Cashier", "Accountant", "Attendant"],
-      default: "Attendant",
+      type: DataTypes.ENUM("Admin", "Manager", "Cashier", "Accountant", "Attendant"),
+      allowNull: false,
+      defaultValue: "Attendant",
     },
   },
-  { timestamps: true }
+  { tableName: "users", timestamps: true }
 );
 
-export default mongoose.model<IUser>("User", userSchema);
+export default User;

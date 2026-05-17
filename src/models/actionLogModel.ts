@@ -1,20 +1,15 @@
-import mongoose, { Schema, Document } from "mongoose";
+import { DataTypes } from "sequelize";
+import sequelize from "../config/db";
 
-export interface IActionLog extends Document {
-  user: string;
-  role: string;
-  action: string;
-  timestamp: Date;
-}
-
-const logSchema = new Schema<IActionLog>(
+const ActionLog: any = sequelize.define(
+  "ActionLog",
   {
-    user: { type: String, required: true },
-    role: { type: String, required: true },
-    action: { type: String, required: true },
-    timestamp: { type: Date, default: Date.now },
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    user: { type: DataTypes.STRING, allowNull: false },
+    role: { type: DataTypes.STRING, allowNull: false },
+    action: { type: DataTypes.TEXT, allowNull: false },
   },
-  { timestamps: true }
+  { tableName: "action_logs", timestamps: true }
 );
 
-export default mongoose.model<IActionLog>("ActionLog", logSchema);
+export default ActionLog;

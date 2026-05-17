@@ -1,43 +1,25 @@
-import mongoose, { Schema, Document } from "mongoose";
+import { DataTypes } from "sequelize";
+import sequelize from "../config/db";
 
-export interface IFinance extends Document {
-  entryType: string;
-  category: string;
-  description: string;
-  debit: number;
-  credit: number;
-  amount: number;
-  modeOfPayment?: string;
-  supplierName?: string;
-  invoiceNo?: string;
-  // New fields for daily expense
-  autoTimestamp?: Date;   // server filled if not provided
-  userTimestamp?: Date;   // optional user-provided date/time
-  name?: string;
-  attendantName?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-const financeSchema = new Schema<IFinance>(
+const Finance: any = sequelize.define(
+  "Finance",
   {
-    entryType: { type: String, required: true },
-    category: { type: String, required: true },
-    description: { type: String, required: true },
-    debit: { type: Number, default: 0 },
-    credit: { type: Number, default: 0 },
-    amount: { type: Number, default: 0 },
-    modeOfPayment: { type: String },
-    supplierName: { type: String },
-    invoiceNo: { type: String },
-
-    // new fields
-    autoTimestamp: { type: Date }, // server generated if missing
-    userTimestamp: { type: Date },
-    name: { type: String },
-    attendantName: { type: String },
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    entryType: { type: DataTypes.STRING, allowNull: false },
+    category: { type: DataTypes.STRING, allowNull: false },
+    description: { type: DataTypes.TEXT, allowNull: false },
+    debit: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    credit: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    amount: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    modeOfPayment: { type: DataTypes.STRING, allowNull: true },
+    supplierName: { type: DataTypes.STRING, allowNull: true },
+    invoiceNo: { type: DataTypes.STRING, allowNull: true },
+    autoTimestamp: { type: DataTypes.DATE, allowNull: true },
+    userTimestamp: { type: DataTypes.DATE, allowNull: true },
+    name: { type: DataTypes.STRING, allowNull: true },
+    attendantName: { type: DataTypes.STRING, allowNull: true },
   },
-  { timestamps: true }
+  { tableName: "finance_entries", timestamps: true }
 );
 
-export default mongoose.model<IFinance>("Finance", financeSchema);
+export default Finance;

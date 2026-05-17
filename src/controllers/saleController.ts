@@ -1,8 +1,6 @@
-// controllers/saleController.ts
 import { Request, Response } from "express";
 import Sale from "../models/saleModel";
 
-// Helper to compute litres & amount for an entry
 const computeEntry = (entry: any) => {
   const opening = Number(entry.openingMeter || 0);
   const closing = Number(entry.closingMeter || 0);
@@ -16,7 +14,6 @@ const computeEntry = (entry: any) => {
   return { litres, amount };
 };
 
-// Create sale (with entries)
 export const addSale = async (req: Request, res: Response) => {
   try {
     const body = req.body;
@@ -25,7 +22,6 @@ export const addSale = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "At least one nozzle entry is required" });
     }
 
-    // compute for each entry & totals
     let totalLitres = 0;
     let totalAmount = 0;
 
@@ -74,9 +70,9 @@ export const addSale = async (req: Request, res: Response) => {
   }
 };
 
-export const getAllSales = async (req: Request, res: Response) => {
+export const getAllSales = async (_req: Request, res: Response) => {
   try {
-    const sales = await Sale.find().sort({ createdAt: -1 });
+    const sales = await Sale.findAll({ order: [["createdAt", "DESC"]] });
     res.json(sales);
   } catch (error: any) {
     console.error("Error fetching sales:", error);
@@ -115,20 +111,17 @@ export const updateSale = async (req: Request, res: Response) => {
       };
     });
 
-    const updated = await Sale.findByIdAndUpdate(
-      id,
-      {
-        ...body,
-        entries,
-        totalLitres: Number(totalLitres.toFixed(2)),
-        totalAmount: Number(totalAmount.toFixed(2)),
-      },
-      { new: true }
-    );
+    const sale = await Sale.findByPk(id);
+    if (!sale) return res.status(404).json({ message: "Sale not found" });
 
-    if (!updated) return res.status(404).json({ message: "Sale not found" });
+    await sale.update({
+      ...body,
+      entries,
+      totalLitres: Number(totalLitres.toFixed(2)),
+      totalAmount: Number(totalAmount.toFixed(2)),
+    });
 
-    res.json(updated);
+    res.json(sale);
   } catch (error: any) {
     console.error("Error updating sale:", error);
     res.status(500).json({ message: "Error updating sale", error: error.message });
@@ -138,8 +131,10 @@ export const updateSale = async (req: Request, res: Response) => {
 export const deleteSale = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const deleted = await Sale.findByIdAndDelete(id);
-    if (!deleted) return res.status(404).json({ message: "Sale not found" });
+    const sale = await Sale.findByPk(id);
+    if (!sale) return res.status(404).json({ message: "Sale not found" });
+
+    await sale.destroy();
     res.json({ message: "Sale deleted successfully" });
   } catch (error: any) {
     console.error("Error deleting sale:", error);

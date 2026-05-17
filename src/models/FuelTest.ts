@@ -1,35 +1,21 @@
-import mongoose, { Schema, Document } from "mongoose";
+import { DataTypes } from "sequelize";
+import sequelize from "../config/db";
 
-export interface IFuelTest extends Document {
-  machineId: mongoose.Types.ObjectId;
-  machineNo: string;
-  machineName: string;
-  nozzleNo: number;
-  fuelType: string;
-  liters: number;
-  startTime: Date;
-  stopTime: Date;
-  duration: number;
-  createdAt: Date;
-}
-
-const fuelTestSchema = new Schema<IFuelTest>(
+const FuelTest: any = sequelize.define(
+  "FuelTest",
   {
-    machineId: { type: Schema.Types.ObjectId, ref: "Machine", required: true },
-    machineNo: { type: String, required: true },
-    machineName: { type: String, required: true },
-
-    nozzleNo: { type: Number, required: true },
-    fuelType: { type: String, required: true },
-
-    liters: { type: Number, required: true },
-
-    startTime: { type: Date, required: true },
-    stopTime: { type: Date, required: true },
-
-    duration: { type: Number, required: true }, // seconds
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    machineId: { type: DataTypes.UUID, allowNull: false },
+    machineNo: { type: DataTypes.STRING, allowNull: false },
+    machineName: { type: DataTypes.STRING, allowNull: false },
+    nozzleNo: { type: DataTypes.INTEGER, allowNull: false },
+    fuelType: { type: DataTypes.STRING, allowNull: false },
+    liters: { type: DataTypes.FLOAT, allowNull: false },
+    startTime: { type: DataTypes.DATE, allowNull: false },
+    stopTime: { type: DataTypes.DATE, allowNull: false },
+    duration: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
   },
-  { timestamps: true }
+  { tableName: "fuel_tests", timestamps: true }
 );
 
-export default mongoose.model<IFuelTest>("FuelTest", fuelTestSchema);
+export default FuelTest;

@@ -9,16 +9,14 @@ export const saveFuelRates = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Rates object is required" });
     }
 
-    let latest = await FuelRate.findOne().sort({ createdAt: -1 });
+    const latest = await FuelRate.findOne({ order: [["createdAt", "DESC"]] });
 
     if (latest) {
-      latest.rates = rates;
-      await latest.save();
+      await latest.update({ rates });
       return res.json(latest);
     }
 
-    const newRates = new FuelRate({ rates });
-    await newRates.save();
+    const newRates = await FuelRate.create({ rates });
     return res.status(201).json(newRates);
   } catch (err) {
     console.error("Error saving fuel rates:", err);
@@ -26,9 +24,9 @@ export const saveFuelRates = async (req: Request, res: Response) => {
   }
 };
 
-export const getFuelRates = async (req: Request, res: Response) => {
+export const getFuelRates = async (_req: Request, res: Response) => {
   try {
-    const latest = await FuelRate.findOne().sort({ createdAt: -1 });
+    const latest = await FuelRate.findOne({ order: [["createdAt", "DESC"]] });
     if (!latest) {
       return res.status(404).json({ message: "No fuel rates found" });
     }

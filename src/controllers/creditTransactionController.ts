@@ -1,50 +1,37 @@
 import { Request, Response } from "express";
 import CreditAccount from "../models/creditLineModel";
 
-/* ------------------------------------------------------
-   ⭐ GET ALL CREDIT TRANSACTIONS (Flattened & Clean)
-------------------------------------------------------- */
-export const getAllCreditTransactions = async (req: Request, res: Response) => {
+export const getAllCreditTransactions = async (_req: Request, res: Response) => {
   try {
-    const accounts = await CreditAccount.find();
+    const accounts = await CreditAccount.findAll();
 
-    let all: any[] = [];
+    const all: any[] = [];
 
-    accounts.forEach((acc: any) => {
-      const tx = Array.isArray(acc.transactions) ? acc.transactions : [];
+    accounts.forEach((account: any) => {
+      const tx = Array.isArray(account.transactions) ? account.transactions : [];
 
       tx.forEach((t: any) => {
         all.push({
-          accountId: acc.accountId,
-          accountName: acc.accountName,
-          phoneNo: acc.phoneNo,
-          companyName: acc.companyName,
-          creditLimit: acc.creditLimit,
-          outstanding: acc.outstanding,
-
-          // ⭐ Transaction Details
+          accountId: account.accountId,
+          accountName: account.accountName,
+          phoneNo: account.phoneNo,
+          companyName: account.companyName,
+          creditLimit: account.creditLimit,
+          outstanding: account.outstanding,
           type: t.type ?? "N/A",
           amount: Number(t.amount ?? 0),
           rate: t.rate ?? "-",
           volume: t.volume ?? "-",
           fuelType: t.fuelType ?? "-",
           vehicleNo: t.vehicleNo ?? "-",
-
-          // ⭐ Always guaranteed date
-          date: t.date ? new Date(t.date) : new Date(acc.createdAt),
+          date: t.date ? new Date(t.date) : new Date(account.createdAt),
         });
       });
     });
 
-    // ⭐ Safe sorting
-    all.sort((a, b) => {
-      const A = new Date(a.date).getTime();
-      const B = new Date(b.date).getTime();
-      return B - A;
-    });
+    all.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return res.status(200).json(all);
-
   } catch (error) {
     console.error("❌ CREDIT TRANSACTION ERROR:", error);
     return res.status(500).json({

@@ -1,94 +1,31 @@
-import mongoose, { Schema, Document } from "mongoose";
+import { DataTypes } from "sequelize";
+import sequelize from "../config/db";
 
-export interface ICreditAccount extends Document {
-  accountId: string;
-  accountName: string;
-
-  phoneNo: string;
-  email: string;
-  companyName: string;
-
-  aadhaarNo: string;
-  panNo: string;
-  document?: string;
-
-  fuelType: "Petrol" | "Diesel";
-  vehicles: {
-    vehicleNo: string;
-    fuelType: "Petrol" | "Diesel";
-  }[];
-
-  creditLimit: number;
-  contactPerson: string;
-
-  totalSales: number;
-  totalPayments: number;
-  outstanding: number;
-
-  dueDate: Date | null;               // ⭐ NEW — 15-day timer start
-  status: string;                      // ⭐ NEW — normal | overLimit | dueSoon | overdue
-  lastReminderSent: Date | null;       // ⭐ NEW — reminder history
-
-  transactions: {
-    date: Date;
-    type: "Sale" | "Payment";
-    amount: number;
-    vehicleNo?: string;
-    fuelType?: "Petrol" | "Diesel";
-    volume?: number;
-    rate?: number;
-    paymentMode?: string;
-  }[];
-}
-
-const creditSchema = new Schema<ICreditAccount>(
+const CreditAccount: any = sequelize.define(
+  "CreditAccount",
   {
-    accountId: { type: String, required: true, unique: true },
-    accountName: { type: String, required: true },
-
-    phoneNo: { type: String },
-    email: { type: String },
-    companyName: { type: String },
-
-    aadhaarNo: { type: String },
-    panNo: { type: String },
-    document: { type: String },
-
-    fuelType: { type: String, enum: ["Petrol", "Diesel"], required: true },
-
-    vehicles: [
-      {
-        vehicleNo: String,
-        fuelType: { type: String, enum: ["Petrol", "Diesel"] },
-      },
-    ],
-
-    creditLimit: { type: Number, required: true },
-    contactPerson: { type: String },
-
-    totalSales: { type: Number, default: 0 },
-    totalPayments: { type: Number, default: 0 },
-    outstanding: { type: Number, default: 0 },
-
-    // ⭐ NEW FIELDS
-    dueDate: { type: Date, default: null },
-    status: { type: String, default: "normal" },
-    lastReminderSent: { type: Date, default: null },
-
-    transactions: [
-      {
-        date: { type: Date, default: Date.now },
-        type: { type: String, enum: ["Sale", "Payment"], required: true },
-        amount: { type: Number, required: true },
-        vehicleNo: { type: String },
-        fuelType: { type: String },
-        volume: { type: Number },
-        rate: { type: Number },
-        paymentMode: { type: String },
-      },
-    ],
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    accountId: { type: DataTypes.STRING, allowNull: false, unique: true },
+    accountName: { type: DataTypes.STRING, allowNull: false },
+    phoneNo: { type: DataTypes.STRING, allowNull: true },
+    email: { type: DataTypes.STRING, allowNull: true },
+    companyName: { type: DataTypes.STRING, allowNull: true },
+    aadhaarNo: { type: DataTypes.STRING, allowNull: true },
+    panNo: { type: DataTypes.STRING, allowNull: true },
+    document: { type: DataTypes.TEXT, allowNull: true },
+    fuelType: { type: DataTypes.ENUM("Petrol", "Diesel"), allowNull: false },
+    vehicles: { type: DataTypes.JSONB, allowNull: false, defaultValue: [] },
+    creditLimit: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    contactPerson: { type: DataTypes.STRING, allowNull: true },
+    totalSales: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    totalPayments: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    outstanding: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    dueDate: { type: DataTypes.DATE, allowNull: true },
+    status: { type: DataTypes.STRING, allowNull: false, defaultValue: "normal" },
+    lastReminderSent: { type: DataTypes.DATE, allowNull: true },
+    transactions: { type: DataTypes.JSONB, allowNull: false, defaultValue: [] },
   },
-  { timestamps: true }
+  { tableName: "credit_accounts", timestamps: true }
 );
 
-export default mongoose.model<ICreditAccount>("CreditAccount", creditSchema);
+export default CreditAccount;

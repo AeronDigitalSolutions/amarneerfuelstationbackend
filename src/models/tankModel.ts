@@ -1,62 +1,29 @@
-// models/tankModel.ts
-import mongoose, { Schema, Document } from "mongoose";
+import { DataTypes } from "sequelize";
+import sequelize from "../config/db";
 
-export interface IChamber {
-  chamberName: string;
-  fuelDensity: number;
-}
-
-export interface ITank extends Document {
-  tankId: string;
-  productType: string;
-  capacity: number;
-  openingStock: number;
-  quantityReceived: number;
-  soldQuantity: number;
-  lowStockAlertLevel: number;
-  ratePerLitre: number;
-  supplierName?: string;
-  tankerReceiptNo?: string;
-  receivedBy?: string;
-  remarks?: string;
-  closingStock: number;
-  totalAmount: number;
-  invoiceDensity?: number;            // NEW
-  chambers?: IChamber[];              // NEW
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-const chamberSchema = new Schema<IChamber>(
+const Tank: any = sequelize.define(
+  "Tank",
   {
-    chamberName: { type: String, required: true },
-    fuelDensity: { type: Number, required: true },
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    tankId: { type: DataTypes.STRING, allowNull: false },
+    productType: { type: DataTypes.STRING, allowNull: false },
+    capacity: { type: DataTypes.FLOAT, allowNull: false },
+    openingStock: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    quantityReceived: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    soldQuantity: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    lowStockAlertLevel: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    ratePerLitre: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    closingStock: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    totalAmount: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    invoiceDensity: { type: DataTypes.FLOAT, allowNull: true },
+    chambers: { type: DataTypes.JSONB, allowNull: false, defaultValue: [] },
+    supplierName: { type: DataTypes.STRING, allowNull: true },
+    tankerReceiptNo: { type: DataTypes.STRING, allowNull: true },
+    receivedBy: { type: DataTypes.STRING, allowNull: true },
+    remarks: { type: DataTypes.TEXT, allowNull: true },
+    dateTime: { type: DataTypes.STRING, allowNull: true },
   },
-  { _id: false }
+  { tableName: "tanks", timestamps: true }
 );
 
-const TankSchema = new Schema<ITank>(
-  {
-    tankId: { type: String, required: true },
-    productType: { type: String, required: true },
-    capacity: { type: Number, required: true },
-    openingStock: { type: Number, required: true },
-    quantityReceived: { type: Number, required: true },
-    soldQuantity: { type: Number, required: true },
-    lowStockAlertLevel: { type: Number, required: true },
-    ratePerLitre: { type: Number, required: true },
-    supplierName: String,
-    tankerReceiptNo: String,
-    receivedBy: String,
-    remarks: String,
-    closingStock: { type: Number, required: true },
-    totalAmount: { type: Number, required: true },
-
-    // NEW FIELDS
-    invoiceDensity: { type: Number },        // optional
-    chambers: { type: [chamberSchema], default: [] },
-  },
-  { timestamps: true }
-);
-
-export default mongoose.model<ITank>("Tank", TankSchema);
+export default Tank;
