@@ -4,7 +4,7 @@ import sequelize from "../config/db";
 const PetrolPump: any = sequelize.define(
   "PetrolPump",
   {
-    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true, field: "id" },
     ownerUserId: { type: DataTypes.UUID, allowNull: false },
     primarySuperAdminUserId: { type: DataTypes.UUID, allowNull: true },
     name: { type: DataTypes.STRING, allowNull: false },

@@ -4,7 +4,7 @@ import sequelize from "../config/db";
 const Sale: any = sequelize.define(
   "Sale",
   {
-    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true, field: "id" },
     pumpId: { type: DataTypes.UUID, allowNull: true },
     saleId: { type: DataTypes.STRING, allowNull: false },
     date: { type: DataTypes.STRING, allowNull: false },
