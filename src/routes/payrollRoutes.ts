@@ -6,6 +6,7 @@ import {
   getAllAttendance,
   deleteAttendance,
   getPayrollSummary,
+  getEmployeeSalarySlip,
 } from "../controllers/payrollController";
 
 const router = express.Router();
@@ -21,5 +22,6 @@ router.delete("/attendance/:id", deleteAttendance);
 
 // Payroll summary
 router.get("/payroll/:employeeId", getPayrollSummary);
+router.get("/salary-slip/:employeeId", getEmployeeSalarySlip);
 
 export default router;

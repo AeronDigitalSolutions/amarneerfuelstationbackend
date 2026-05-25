@@ -12,7 +12,8 @@ import {
 
 
 import { 
-  getAllCreditTransactions 
+  getAllCreditTransactions,
+  getCreditTransactionSummary,
 } from "../controllers/creditTransactionController";  // ⭐ NEW
 const router = express.Router();
 
@@ -24,6 +25,7 @@ router.get("/credit", getAllAccounts);
 
 /* ⭐ MUST BE ABOVE ANY :id ROUTE */
 router.get("/credit/transaction", getAllCreditTransactions);
+router.get("/credit/transaction/summary", getCreditTransactionSummary);
 
 /* This must stay AFTER /credit/transaction */
 router.post("/credit/transaction", addTransaction);

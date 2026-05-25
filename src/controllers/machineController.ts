@@ -1,8 +1,10 @@
 import { Request, Response } from "express";
 import { Machine } from "../models/Machine";
+import { getPumpIdOrThrow } from "../middleware/pumpContext";
 
 export const createMachine = async (req: Request, res: Response): Promise<void> => {
   try {
+    const pumpId = getPumpIdOrThrow(req);
     const { machineNo, machineName, nozzles } = req.body;
 
     if (!machineNo || !machineName || !Array.isArray(nozzles)) {
@@ -15,13 +17,13 @@ export const createMachine = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    const exists = await Machine.findOne({ where: { machineNo } });
+    const exists = await Machine.findOne({ where: { machineNo, pumpId } });
     if (exists) {
       res.status(400).json({ message: "Machine number already exists" });
       return;
     }
 
-    const machine = await Machine.create({ machineNo, machineName, nozzles });
+    const machine = await Machine.create({ machineNo, machineName, nozzles, pumpId });
 
     res.status(201).json(machine);
   } catch (err) {
@@ -32,7 +34,8 @@ export const createMachine = async (req: Request, res: Response): Promise<void> 
 
 export const getMachines = async (_req: Request, res: Response): Promise<void> => {
   try {
-    const machines = await Machine.findAll({ order: [["createdAt", "DESC"]] });
+    const pumpId = getPumpIdOrThrow(_req);
+    const machines = await Machine.findAll({ where: { pumpId }, order: [["createdAt", "DESC"]] });
     res.json(machines);
   } catch (err) {
     console.error("Error fetching machines:", err);

@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import CreditAccount from "../models/creditLineModel";
 import nodemailer from "nodemailer";
+import { getPumpIdOrThrow } from "../middleware/pumpContext";
 
-const updateAccountStatus = (account: any, dueDays?: number) => {
+const updateAccountStatus = (account: any, dueDays?: number, dueDate?: string) => {
   const outstanding = Number(account.outstanding ?? 0);
   const creditLimit = Number(account.creditLimit ?? 0);
 
@@ -13,8 +14,12 @@ const updateAccountStatus = (account: any, dueDays?: number) => {
   }
 
   const days = Number(dueDays) || 15;
+  const parsedDueDate = dueDate ? new Date(dueDate) : null;
+  const hasValidDueDate = parsedDueDate && !Number.isNaN(parsedDueDate.getTime());
 
-  if (!account.dueDate) {
+  if (hasValidDueDate) {
+    account.dueDate = parsedDueDate;
+  } else if (!account.dueDate) {
     account.dueDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
   }
 
@@ -31,6 +36,7 @@ const updateAccountStatus = (account: any, dueDays?: number) => {
 
 export const addCreditAccount = async (req: Request, res: Response) => {
   try {
+    const pumpId = getPumpIdOrThrow(req);
     const {
       accountId,
       accountName,
@@ -55,7 +61,13 @@ export const addCreditAccount = async (req: Request, res: Response) => {
       }
     }
 
+    const existing = await CreditAccount.findOne({ where: { pumpId, accountId } });
+    if (existing) {
+      return res.status(400).json({ message: "Account ID already exists for this pump" });
+    }
+
     const newAccount = await CreditAccount.create({
+      pumpId,
       accountId,
       accountName,
       phoneNo,
@@ -86,7 +98,8 @@ export const addCreditAccount = async (req: Request, res: Response) => {
 
 export const getAllAccounts = async (_req: Request, res: Response) => {
   try {
-    const accounts = await CreditAccount.findAll({ order: [["createdAt", "DESC"]] });
+    const pumpId = getPumpIdOrThrow(_req);
+    const accounts = await CreditAccount.findAll({ where: { pumpId }, order: [["createdAt", "DESC"]] });
     res.status(200).json(accounts);
   } catch (error) {
     res.status(500).json({ message: "Error fetching accounts", error });
@@ -95,6 +108,7 @@ export const getAllAccounts = async (_req: Request, res: Response) => {
 
 export const addTransaction = async (req: Request, res: Response) => {
   try {
+    const pumpId = getPumpIdOrThrow(req);
     const {
       accountId,
       type,
@@ -105,9 +119,14 @@ export const addTransaction = async (req: Request, res: Response) => {
       rate,
       volume,
       dueDays,
+      dueDate,
+      machineNo,
+      shift,
+      saleDate,
+      settlementMode,
     } = req.body;
 
-    const account = await CreditAccount.findOne({ where: { accountId } });
+    const account = await CreditAccount.findOne({ where: { accountId, pumpId } });
     if (!account) return res.status(404).json({ message: "Account not found" });
 
     const acc = account as any;
@@ -122,6 +141,11 @@ export const addTransaction = async (req: Request, res: Response) => {
       fuelType,
       rate,
       volume,
+      machineNo: machineNo || "",
+      shift: shift || "",
+      saleDate: saleDate || "",
+      dueDate: dueDate || "",
+      settlementMode: settlementMode || "CreditLine",
     });
 
     acc.transactions = transactions;
@@ -131,7 +155,7 @@ export const addTransaction = async (req: Request, res: Response) => {
 
     acc.outstanding = Number(acc.totalSales || 0) - Number(acc.totalPayments || 0);
 
-    updateAccountStatus(acc, dueDays);
+    updateAccountStatus(acc, dueDays, dueDate);
 
     await account.save();
     res.status(201).json(account);
@@ -143,8 +167,9 @@ export const addTransaction = async (req: Request, res: Response) => {
 
 export const getAccountDetails = async (req: Request, res: Response) => {
   try {
+    const pumpId = getPumpIdOrThrow(req);
     const { id } = req.params;
-    const account = await CreditAccount.findByPk(id);
+    const account = await CreditAccount.findOne({ where: { _id: id, pumpId } });
 
     if (!account) return res.status(404).json({ message: "Account not found" });
 
@@ -156,8 +181,9 @@ export const getAccountDetails = async (req: Request, res: Response) => {
 
 export const deleteAccount = async (req: Request, res: Response) => {
   try {
+    const pumpId = getPumpIdOrThrow(req);
     const { id } = req.params;
-    const account = await CreditAccount.findByPk(id);
+    const account = await CreditAccount.findOne({ where: { _id: id, pumpId } });
 
     if (!account) return res.status(404).json({ message: "Account not found" });
 
@@ -170,6 +196,7 @@ export const deleteAccount = async (req: Request, res: Response) => {
 
 export const sendCreditEmail = async (req: Request, res: Response) => {
   try {
+    getPumpIdOrThrow(req);
     const { email, pdfBase64, accountId } = req.body;
 
     if (!email || !pdfBase64)
@@ -206,9 +233,10 @@ export const sendCreditEmail = async (req: Request, res: Response) => {
 
 export const sendReminderEmail = async (req: Request, res: Response) => {
   try {
+    const pumpId = getPumpIdOrThrow(req);
     const { accountId } = req.body;
 
-    const account = await CreditAccount.findOne({ where: { accountId } });
+    const account = await CreditAccount.findOne({ where: { accountId, pumpId } });
     if (!account) return res.status(404).json({ message: "Account not found" });
 
     const acc = account as any;

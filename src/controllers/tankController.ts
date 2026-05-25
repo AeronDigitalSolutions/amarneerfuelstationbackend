@@ -1,13 +1,16 @@
 import { Request, Response } from "express";
 import Tank from "../models/tankModel";
+import { getPumpIdOrThrow } from "../middleware/pumpContext";
 
 export const addTank = async (req: Request, res: Response) => {
   try {
+    const pumpId = getPumpIdOrThrow(req);
     const {
       tankId,
       productType,
       capacity,
       openingStock,
+      dipVolume,
       quantityReceived,
       soldQuantity,
       lowStockAlertLevel,
@@ -27,7 +30,6 @@ export const addTank = async (req: Request, res: Response) => {
       !tankId ||
       productType == null ||
       capacity == null ||
-      openingStock == null ||
       quantityReceived == null ||
       soldQuantity == null ||
       lowStockAlertLevel == null ||
@@ -39,11 +41,23 @@ export const addTank = async (req: Request, res: Response) => {
       return;
     }
 
+    const previousEntry = await Tank.findOne({
+      where: { pumpId, tankId },
+      order: [["createdAt", "DESC"]],
+    });
+    const previousClosing = previousEntry ? Number(previousEntry.get("closingStock") ?? 0) : null;
+    const computedOpeningStock =
+      previousClosing != null && Number.isFinite(previousClosing)
+        ? previousClosing
+        : Number(openingStock || 0);
+
     const payload: any = {
+      pumpId,
       tankId,
       productType,
       capacity,
-      openingStock,
+      openingStock: computedOpeningStock,
+      dipVolume: Number(dipVolume || 0),
       quantityReceived,
       soldQuantity,
       lowStockAlertLevel,
@@ -75,7 +89,8 @@ export const addTank = async (req: Request, res: Response) => {
 
 export const getAllTanks = async (_req: Request, res: Response) => {
   try {
-    const tanks = await Tank.findAll({ order: [["createdAt", "DESC"]] });
+    const pumpId = getPumpIdOrThrow(_req);
+    const tanks = await Tank.findAll({ where: { pumpId }, order: [["createdAt", "DESC"]] });
     res.status(200).json(tanks);
   } catch (error) {
     console.error("❌ Error fetching tanks:", error);
@@ -85,11 +100,13 @@ export const getAllTanks = async (_req: Request, res: Response) => {
 
 export const updateTank = async (req: Request, res: Response) => {
   try {
+    const pumpId = getPumpIdOrThrow(req);
     const { id } = req.params;
-    const { invoiceDensity, chambers, ...rest } = req.body;
+    const { invoiceDensity, chambers, dipVolume, ...rest } = req.body;
 
     const updatePayload: any = {
       ...rest,
+      dipVolume: dipVolume != null ? Number(dipVolume) : undefined,
       invoiceDensity: invoiceDensity != null ? Number(invoiceDensity) : undefined,
       chambers: Array.isArray(chambers)
         ? chambers.map((c: any) => ({
@@ -99,7 +116,7 @@ export const updateTank = async (req: Request, res: Response) => {
         : undefined,
     };
 
-    const tank = await Tank.findByPk(id);
+    const tank = await Tank.findOne({ where: { _id: id, pumpId } });
     if (!tank) return res.status(404).json({ message: "Tank not found" });
 
     await tank.update(updatePayload);
@@ -112,8 +129,9 @@ export const updateTank = async (req: Request, res: Response) => {
 
 export const deleteTank = async (req: Request, res: Response) => {
   try {
+    const pumpId = getPumpIdOrThrow(req);
     const { id } = req.params;
-    const tank = await Tank.findByPk(id);
+    const tank = await Tank.findOne({ where: { _id: id, pumpId } });
     if (!tank) return res.status(404).json({ message: "Tank not found" });
 
     await tank.destroy();

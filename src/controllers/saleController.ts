@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Sale from "../models/saleModel";
+import { getPumpIdOrThrow } from "../middleware/pumpContext";
 
 const computeEntry = (entry: any) => {
   const opening = Number(entry.openingMeter || 0);
@@ -16,6 +17,7 @@ const computeEntry = (entry: any) => {
 
 export const addSale = async (req: Request, res: Response) => {
   try {
+    const pumpId = getPumpIdOrThrow(req);
     const body = req.body;
 
     if (!Array.isArray(body.entries) || body.entries.length === 0) {
@@ -45,6 +47,7 @@ export const addSale = async (req: Request, res: Response) => {
     });
 
     const sale = await Sale.create({
+      pumpId,
       saleId: body.saleId,
       date: body.date,
       time: body.time,
@@ -56,6 +59,9 @@ export const addSale = async (req: Request, res: Response) => {
       cashAmount: Number(body.cashAmount || 0),
       upiAmount: Number(body.upiAmount || 0),
       cardAmount: Number(body.cardAmount || 0),
+      creditLineAmount: Number(body.creditLineAmount || 0),
+      companyAccountAmount: Number(body.companyAccountAmount || 0),
+      totalReceivedAtPump: Number(body.totalReceivedAtPump || 0),
       totalPayment: Number(body.totalPayment || 0),
       paymentMode: body.paymentMode || "Cash",
       creditParty: body.creditParty || "",
@@ -72,7 +78,8 @@ export const addSale = async (req: Request, res: Response) => {
 
 export const getAllSales = async (_req: Request, res: Response) => {
   try {
-    const sales = await Sale.findAll({ order: [["createdAt", "DESC"]] });
+    const pumpId = getPumpIdOrThrow(_req);
+    const sales = await Sale.findAll({ where: { pumpId }, order: [["createdAt", "DESC"]] });
     res.json(sales);
   } catch (error: any) {
     console.error("Error fetching sales:", error);
@@ -82,6 +89,7 @@ export const getAllSales = async (_req: Request, res: Response) => {
 
 export const updateSale = async (req: Request, res: Response) => {
   try {
+    const pumpId = getPumpIdOrThrow(req);
     const { id } = req.params;
     const body = req.body;
 
@@ -111,7 +119,7 @@ export const updateSale = async (req: Request, res: Response) => {
       };
     });
 
-    const sale = await Sale.findByPk(id);
+    const sale = await Sale.findOne({ where: { _id: id, pumpId } });
     if (!sale) return res.status(404).json({ message: "Sale not found" });
 
     await sale.update({
@@ -119,6 +127,9 @@ export const updateSale = async (req: Request, res: Response) => {
       entries,
       totalLitres: Number(totalLitres.toFixed(2)),
       totalAmount: Number(totalAmount.toFixed(2)),
+      creditLineAmount: Number(body.creditLineAmount || 0),
+      companyAccountAmount: Number(body.companyAccountAmount || 0),
+      totalReceivedAtPump: Number(body.totalReceivedAtPump || 0),
     });
 
     res.json(sale);
@@ -130,8 +141,9 @@ export const updateSale = async (req: Request, res: Response) => {
 
 export const deleteSale = async (req: Request, res: Response) => {
   try {
+    const pumpId = getPumpIdOrThrow(req);
     const { id } = req.params;
-    const sale = await Sale.findByPk(id);
+    const sale = await Sale.findOne({ where: { _id: id, pumpId } });
     if (!sale) return res.status(404).json({ message: "Sale not found" });
 
     await sale.destroy();

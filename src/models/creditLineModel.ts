@@ -5,7 +5,8 @@ const CreditAccount: any = sequelize.define(
   "CreditAccount",
   {
     _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    accountId: { type: DataTypes.STRING, allowNull: false, unique: true },
+    pumpId: { type: DataTypes.UUID, allowNull: true },
+    accountId: { type: DataTypes.STRING, allowNull: false },
     accountName: { type: DataTypes.STRING, allowNull: false },
     phoneNo: { type: DataTypes.STRING, allowNull: true },
     email: { type: DataTypes.STRING, allowNull: true },

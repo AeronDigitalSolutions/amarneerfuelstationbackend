@@ -17,6 +17,8 @@ import addtankRoutes from "./routes/addtankroutes";
 import fuelTestRoutes from "./routes/fuelTestRoutes";
 import shiftRoutes from "./routes/shiftRoutes";
 import paymentRoutes from "./routes/payment";
+import pumpRoutes from "./routes/pumpRoutes";
+import { attachRequesterContext, requirePumpContext } from "./middleware/pumpContext";
 
 import authRoutes from "./routes/authRoutes";
 
@@ -25,7 +27,7 @@ import authRoutes from "./routes/authRoutes";
 // Load environment variables
 dotenv.config();
 
-// Connect to MongoDB
+// Connect to PostgreSQL
 connectDB();
 
 // Initialize Express app
@@ -68,22 +70,24 @@ app.use(
   })
 );
 app.use("/api/auth", authRoutes);
+app.use(attachRequesterContext);
 // -------------------
 // 🛣️ API Routes
 // -------------------
-app.use("/api/sales", saleRoutes);
-app.use("/api/tanks", tankRoutes);
-app.use("/api/finance", financeRoutes);
-app.use("/api/payroll", payrollRoutes);
-app.use("/api", creditRoutes);
+app.use("/api/pumps", pumpRoutes);
+app.use("/api/sales", requirePumpContext, saleRoutes);
+app.use("/api/tanks", requirePumpContext, tankRoutes);
+app.use("/api/finance", requirePumpContext, financeRoutes);
+app.use("/api/payroll", requirePumpContext, payrollRoutes);
+app.use("/api", requirePumpContext, creditRoutes);
 app.use("/api", adminRoutes);
-app.use("/api", dashboardRoutes);
-app.use("/api/fuel-rates", fuelRateRoutes);
-app.use("/api/machines", machineRoutes);
-app.use("/api/tank-master", addtankRoutes);
-app.use("/api/fueltest", fuelTestRoutes);
-app.use("/api/shifts", shiftRoutes);
-app.use("/api/payments", paymentRoutes);
+app.use("/api", requirePumpContext, dashboardRoutes);
+app.use("/api/fuel-rates", requirePumpContext, fuelRateRoutes);
+app.use("/api/machines", requirePumpContext, machineRoutes);
+app.use("/api/tank-master", requirePumpContext, addtankRoutes);
+app.use("/api/fueltest", requirePumpContext, fuelTestRoutes);
+app.use("/api/shifts", requirePumpContext, shiftRoutes);
+app.use("/api/payments", requirePumpContext, paymentRoutes);
 
 
 

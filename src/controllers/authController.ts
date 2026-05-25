@@ -8,21 +8,20 @@ const JWT_SECRET = process.env.JWT_SECRET || "secretkey";
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const { username, password, role } = req.body;
+    const { username, password } = req.body;
 
-    if (!username || !password || !role) {
-      return res.status(400).json({ message: "All fields required" });
+    if (!username || !password) {
+      return res.status(400).json({ message: "Username/email and password are required" });
     }
 
     const user = await User.findOne({
       where: {
-        role,
         [Op.or]: [{ username }, { email: username }],
       },
     });
 
     if (!user) {
-      return res.status(404).json({ message: "Invalid username or role" });
+      return res.status(404).json({ message: "Invalid username or password" });
     }
 
     const userObj = user as any;
@@ -43,6 +42,8 @@ export const login = async (req: Request, res: Response) => {
         username: userObj.username,
         email: userObj.email,
         role: userObj.role,
+        customRoleName: userObj.customRoleName || null,
+        modulePermissions: userObj.modulePermissions || {},
       },
     });
   } catch (err) {

@@ -9,9 +9,15 @@ const User: any = sequelize.define(
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
     password: { type: DataTypes.STRING, allowNull: false },
     role: {
-      type: DataTypes.ENUM("Admin", "Manager", "Cashier", "Accountant", "Attendant"),
+      type: DataTypes.ENUM("Owner", "SuperAdmin", "Admin"),
       allowNull: false,
-      defaultValue: "Attendant",
+      defaultValue: "Admin",
+    },
+    customRoleName: { type: DataTypes.STRING, allowNull: true },
+    modulePermissions: {
+      type: DataTypes.JSONB,
+      allowNull: false,
+      defaultValue: {},
     },
   },
   { tableName: "users", timestamps: true }
