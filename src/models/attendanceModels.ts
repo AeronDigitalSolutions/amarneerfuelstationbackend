@@ -4,7 +4,7 @@ import sequelize from "../config/db";
 const Attendance: any = sequelize.define(
   "Attendance",
   {
-    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true, field: "id" },
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
     pumpId: { type: DataTypes.UUID, allowNull: true },
     employeeId: { type: DataTypes.UUID, allowNull: false },
     date: { type: DataTypes.STRING, allowNull: false },

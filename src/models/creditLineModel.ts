@@ -4,7 +4,7 @@ import sequelize from "../config/db";
 const CreditAccount: any = sequelize.define(
   "CreditAccount",
   {
-    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true, field: "id" },
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
     pumpId: { type: DataTypes.UUID, allowNull: true },
     accountId: { type: DataTypes.STRING, allowNull: false },
     accountName: { type: DataTypes.STRING, allowNull: false },

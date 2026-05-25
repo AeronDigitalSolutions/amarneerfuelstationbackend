@@ -4,7 +4,7 @@ import sequelize from "../config/db";
 const PumpUserAccess: any = sequelize.define(
   "PumpUserAccess",
   {
-    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true, field: "id" },
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
     pumpId: { type: DataTypes.UUID, allowNull: false },
     userId: { type: DataTypes.UUID, allowNull: false },
     grantedByUserId: { type: DataTypes.UUID, allowNull: true },

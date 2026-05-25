@@ -4,7 +4,7 @@ import sequelize from "../config/db";
 const Tank: any = sequelize.define(
   "Tank",
   {
-    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true, field: "id" },
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
     pumpId: { type: DataTypes.UUID, allowNull: true },
     tankId: { type: DataTypes.STRING, allowNull: false },
     productType: { type: DataTypes.STRING, allowNull: false },

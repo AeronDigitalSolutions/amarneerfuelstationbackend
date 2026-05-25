@@ -4,7 +4,7 @@ import sequelize from "../config/db";
 const FuelTest: any = sequelize.define(
   "FuelTest",
   {
-    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true, field: "id" },
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
     pumpId: { type: DataTypes.UUID, allowNull: true },
     machineId: { type: DataTypes.UUID, allowNull: false },
     machineNo: { type: DataTypes.STRING, allowNull: false },

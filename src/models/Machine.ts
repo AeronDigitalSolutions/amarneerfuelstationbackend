@@ -4,7 +4,7 @@ import sequelize from "../config/db";
 export const Machine: any = sequelize.define(
   "Machine",
   {
-    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true, field: "id" },
+    _id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
     pumpId: { type: DataTypes.UUID, allowNull: true },
     machineNo: { type: DataTypes.STRING, allowNull: false },
     machineName: { type: DataTypes.STRING, allowNull: false },
