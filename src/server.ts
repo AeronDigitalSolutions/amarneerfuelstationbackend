@@ -27,9 +27,6 @@ import authRoutes from "./routes/authRoutes";
 // Load environment variables
 dotenv.config();
 
-// Connect to PostgreSQL
-connectDB();
-
 // Initialize Express app
 const app = express();
 
@@ -107,10 +104,22 @@ console.log("🔥 SERVER RUNNING FROM:", __dirname);
 // -------------------
 const PORT = Number(process.env.PORT) || 5000;
 
-// Render requires your app to *always* listen on process.env.PORT
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`✅ Server running on port ${PORT}`);
-});
+const startServer = async () => {
+  try {
+    // Ensure database and compatibility migrations are ready before serving traffic.
+    await connectDB();
+
+    // Render requires your app to *always* listen on process.env.PORT
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`✅ Server running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error("❌ Failed to start server:", err);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 // Export only if needed for testing
 export default app;
