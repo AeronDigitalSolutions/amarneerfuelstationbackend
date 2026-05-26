@@ -51,10 +51,12 @@ app.use(
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
 
+      const isIpOrigin = /^https?:\/\/\d{1,3}(?:\.\d{1,3}){3}(?::\d+)?$/.test(origin);
       if (
         origin.endsWith(".vercel.app") ||
-        origin === "http://localhost:3000" ||
-        origin === "http://localhost:5173"
+        origin.startsWith("http://localhost:") ||
+        origin.startsWith("http://127.0.0.1:") ||
+        isIpOrigin
       ) {
         callback(null, true);
       } else {
