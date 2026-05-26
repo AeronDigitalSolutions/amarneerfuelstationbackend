@@ -39,12 +39,19 @@ const ensureLegacyIdCompatibility = async () => {
       const hasLegacyId = Boolean((columns as any)._id);
       const hasId = Boolean((columns as any).id);
 
-      if (!hasLegacyId) {
+      if (!hasId && !hasLegacyId) {
         continue;
       }
 
-      if (!hasId) {
+      if (hasLegacyId && !hasId) {
         await qi.addColumn(tableName, "id", {
+          type: DataTypes.UUID,
+          allowNull: true,
+        });
+      }
+
+      if (hasId && !hasLegacyId) {
+        await qi.addColumn(tableName, "_id", {
           type: DataTypes.UUID,
           allowNull: true,
         });
@@ -52,6 +59,9 @@ const ensureLegacyIdCompatibility = async () => {
 
       await sequelize.query(
         `UPDATE "${tableName}" SET "id" = "_id" WHERE "id" IS NULL AND "_id" IS NOT NULL`
+      );
+      await sequelize.query(
+        `UPDATE "${tableName}" SET "_id" = "id" WHERE "_id" IS NULL AND "id" IS NOT NULL`
       );
     } catch {
       // Skip if table is absent in this environment.
